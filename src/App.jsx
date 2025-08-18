@@ -4,6 +4,7 @@ import { FileBarChart2, Layers, Plus, PackageCheck, Settings } from "lucide-reac
 import Sidebar from "./components/layout/Sidebar.jsx";
 import Navbar from "./components/layout/Navbar.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
+import ProductsPage from "./pages/ProductsPage.jsx";
 import ReportsPage from "./pages/ReportsPage.jsx";
 import StockUpdatePage from "./pages/StockUpdatePage.jsx";
 import SettingsPage from "./pages/SettingsPage.jsx";
@@ -21,6 +22,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [reportsView, setReportsView] = useState(false);
   const [settingsView, setSettingsView] = useState(false);
+  const [productsView, setProductsView] = useState(false);
 
   // Toggle function
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
@@ -128,10 +130,11 @@ const [stockView, setStockView] = useState(false);
         onToggle={toggleSidebar}
         onChange={(key) => {
           if (key === "create") { setAddOpen(true); return; }
-          if (key === "stock") { setStockView(true); setReportsView(false); setSettingsView(false); setActive("stock"); return; }
-          if (key === "reports") { setReportsView(true); setStockView(false); setSettingsView(false); setActive("reports"); return; }
-          if (key === "settings") { setSettingsView(true); setStockView(false); setReportsView(false); setActive("settings"); return; }
-          setStockView(false); setReportsView(false); setSettingsView(false);
+          if (key === "products") { setProductsView(true); setStockView(false); setReportsView(false); setSettingsView(false); setActive("products"); return; }
+          if (key === "stock") { setStockView(true); setProductsView(false); setReportsView(false); setSettingsView(false); setActive("stock"); return; }
+          if (key === "reports") { setReportsView(true); setProductsView(false); setStockView(false); setSettingsView(false); setActive("reports"); return; }
+          if (key === "settings") { setSettingsView(true); setProductsView(false); setStockView(false); setReportsView(false); setActive("settings"); return; }
+          setProductsView(false); setStockView(false); setReportsView(false); setSettingsView(false);
           setActive(key);
         }}
       />
@@ -155,6 +158,18 @@ const [stockView, setStockView] = useState(false);
     ) : settingsView ? (
       <SettingsPage 
         onBack={() => { setSettingsView(false); setActive("dashboard"); }}
+      />
+    ) : productsView ? (
+      <ProductsPage
+        items={items}
+        query={query}
+        setQuery={setQuery}
+        category={category}
+        setCategory={setCategory}
+        onlyLow={onlyLow}
+        setOnlyLow={setOnlyLow}
+        onOpenAdd={() => setAddOpen(true)}
+        onBack={() => { setProductsView(false); setActive("dashboard"); }}
       />
     ) : (
       <DashboardPage
