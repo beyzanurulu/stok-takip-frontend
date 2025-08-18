@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import { Card, CardHeader } from "../components/ui/Card.jsx";
 import Button from "../components/ui/Button.jsx";
 import { Search, Filter, Plus, Edit2, Trash2 } from "lucide-react";
@@ -15,6 +15,81 @@ export default function ProductsPage({
   onOpenAdd, 
   onBack 
 }) {
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchRef = useRef(null);
+
+  // Autocomplete suggestions
+  const filteredSuggestions = useMemo(() => {
+    if (!query.trim()) return [];
+    
+    const searchTerm = query.toLowerCase();
+    const results = [];
+    
+    // Ürün adlarından öneriler
+    items.forEach(item => {
+      if (item.name.toLowerCase().includes(searchTerm)) {
+        results.push({
+          type: 'product',
+          text: item.name,
+          category: item.category,
+          icon: '📦'
+        });
+      }
+    });
+    
+    // Kategorilerden öneriler
+    CATEGORIES.forEach(cat => {
+      if (cat.toLowerCase().includes(searchTerm)) {
+        results.push({
+          type: 'category',
+          text: cat,
+          icon: '🏷️'
+        });
+      }
+    });
+    
+    // SKU'lardan öneriler
+    items.forEach(item => {
+      if (item.id.toLowerCase().includes(searchTerm)) {
+        results.push({
+          type: 'sku',
+          text: item.id,
+          name: item.name,
+          icon: '🏷️'
+        });
+      }
+    });
+    
+    return results.slice(0, 8);
+  }, [query, items]);
+
+  // Click outside to close suggestions
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleInputChange = (value) => {
+    setQuery(value);
+    setShowSuggestions(value.length > 0);
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    if (suggestion.type === 'category') {
+      setCategory(suggestion.text);
+      setQuery(suggestion.text);
+    } else {
+      setQuery(suggestion.text);
+    }
+    setShowSuggestions(false);
+  };
+
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
       const matchesQuery = query === "" || 
@@ -56,15 +131,40 @@ export default function ProductsPage({
         <div className="card__body">
           <div className="filter-bar">
             <div className="filter-actions">
-              {/* Search */}
-              <div className="search">
+              {/* Search with Autocomplete */}
+              <div className="search" ref={searchRef}>
                 <Search className="search__icon icon" />
                 <input
                   className="input search__input"
-                  placeholder="Ürün ara..."
+                  placeholder="SKU, ürün adı, kategori ara..."
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={(e) => handleInputChange(e.target.value)}
+                  onFocus={() => query.length > 0 && setShowSuggestions(true)}
                 />
+                
+                {/* Autocomplete Suggestions */}
+                {showSuggestions && filteredSuggestions.length > 0 && (
+                  <div className="search-suggestions">
+                    {filteredSuggestions.map((suggestion, index) => (
+                      <div 
+                        key={index}
+                        className="search-suggestion-item"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                      >
+                        <span className="suggestion-icon">{suggestion.icon}</span>
+                        <div className="suggestion-content">
+                          <div className="suggestion-text">{suggestion.text}</div>
+                          {suggestion.category && (
+                            <div className="suggestion-category">{suggestion.category}</div>
+                          )}
+                          {suggestion.name && (
+                            <div className="suggestion-name">{suggestion.name}</div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Category Filter */}

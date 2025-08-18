@@ -35,6 +35,7 @@ export default function DashboardPage({ items, query, setQuery, category, setCat
           onOnlyLow={setOnlyLow}
           categories={CATEGORIES}
           onExport={onExportCSV}
+          items={items}
         />
       </Card>
 
